@@ -1,54 +1,50 @@
 package main
 
 import (
-	"log"
+	
 	"socialapp/controllers"
-	// "socialapp/middlewares"
-	"socialapp/utils"
+	"socialapp/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// it have logger and recovery handler by itself
+	
+	// It has logger and recovery handler by itself
 	server := gin.Default()
 
-	// health check
+	// Health check
 	server.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "server is healthy",
 		})
 	})
 
-	// connecting mongo db
-	err := utils.ConnectDB()
-	if err != nil {
-		log.Fatalf("Error initializing MongoDB: %v", err)
-	}
-
 	// Public routes
 	server.POST("/register", controllers.Register)
-	// server.POST("/login", controllers.Login)
+	server.POST("/login", controllers.Login)
 
-	// server.Use(middlewares.AuthMiddleware())
-	// {
-	// 	server.POST("/posts", controllers.CreatePost)
-	// 	server.GET("/posts/:id", controllers.GetPost)
-	// 	server.PUT("/posts/:id", controllers.UpdatePost)
-	// 	server.DELETE("/posts/:id", controllers.DeletePost)
-	// 	server.GET("/posts", controllers.ListPosts)
+	// Protected routes
+	protected := server.Group("/")
+	protected.Use(middlewares.AuthMiddleware())
+	{
+		protected.POST("/posts", controllers.CreatePost)
+		protected.GET("/posts/:id", controllers.GetPost)
+		protected.PUT("/posts/:id", controllers.UpdatePost)
+		protected.DELETE("/posts/:id", controllers.DeletePost)
+		protected.GET("/posts", controllers.ListPosts)
 
-	// 	server.POST("/comments", controllers.CreateComment)
-	// 	server.GET("/comments/:id", controllers.GetComment)
-	// 	server.PUT("/comments/:id", controllers.UpdateComment)
-	// 	server.DELETE("/comments/:id", controllers.DeleteComment)
-	// 	server.GET("/comments", controllers.ListComments)
+		protected.POST("/comments", controllers.CreateComment)
+		protected.GET("/comments/:id", controllers.GetComment)
+		protected.PUT("/comments/:id", controllers.UpdateComment)
+		protected.DELETE("/comments/:id", controllers.DeleteComment)
+		protected.GET("/comments", controllers.ListComments)
 
-	// 	server.POST("/likes", controllers.CreateLike)
-	// 	server.GET("/likes/:id", controllers.GetLike)
-	// 	server.DELETE("/likes/:id", controllers.DeleteLike)
-	// 	server.GET("/likes", controllers.ListLikes)
-	// }
+		protected.POST("/likes", controllers.CreateLike)
+		protected.GET("/likes/:id", controllers.GetLike)
+		protected.DELETE("/likes/:id", controllers.DeleteLike)
+		protected.GET("/likes", controllers.ListLikes)
+	}
 
 	server.Run()
 }
