@@ -10,10 +10,11 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// var userCollection *mongo.Collection = utils.GetCollection("users")
+var userCollection *mongo.Collection = utils.GetCollection("users")
 
 // signup route
 func Register(c *gin.Context) {
@@ -32,7 +33,7 @@ func Register(c *gin.Context) {
 	user.Password = string(hashedPassword)
 
 	// inserting new user
-	res, err := utils.GetCollection("users").InsertOne(context.Background(), user)
+	res, err := userCollection.InsertOne(context.Background(), user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while inserting user"})
 		return
@@ -51,7 +52,7 @@ func Login(c *gin.Context) {
 
 	var foundUser models.User
 	// fetching user from user id
-	err := utils.GetCollection("users").FindOne(context.Background(), bson.M{"username": user.Username}).Decode(&foundUser)
+	err := userCollection.FindOne(context.Background(), bson.M{"username": user.Username}).Decode(&foundUser)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
@@ -64,12 +65,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// creating jwt for user
+	// creating jwt for user (TTL = 72 hours)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":  foundUser.ID.Hex(),
 		"exp": time.Now().Add(time.Hour * 72).Unix(),
 	})
 
+	// hashing token
 	tokenString, err := token.SignedString([]byte("4ug6FCzsASs9GgeURfmI+mrz6ZtuG5GfeO7JaE//evE="))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token"})

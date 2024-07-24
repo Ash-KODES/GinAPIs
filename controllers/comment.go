@@ -14,7 +14,7 @@ func CreateComment(c *gin.Context) {
 	var comment models.Comment
 	if err := c.ShouldBindJSON(&comment); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		return	
 	}
 
 	res, err := commentCollection.InsertOne(context.Background(), comment)
