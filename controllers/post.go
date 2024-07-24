@@ -43,12 +43,14 @@ func GetPost(c *gin.Context) {
 		return
 	}
 
+	// accumulating comments count
 	commentCount, err := commentCollection.CountDocuments(context.Background(), bson.M{"post_id": objID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error counting comments"})
 		return
 	}
 
+	// accumulating likes count
 	likeCount, err := likeCollection.CountDocuments(context.Background(), bson.M{"post_id": objID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error counting likes"})
