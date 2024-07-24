@@ -2,25 +2,34 @@ package routes
 
 import (
 	"socialapp/middlewares"
-
+	"socialapp/controllers"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter() *gin.Engine {
-	// it have logger and recovery handler by itself
-	router := gin.Default()
-
+func SetupRouter(server *gin.Engine) *gin.Engine {
 	// Public routes
-	AuthRoutes(router)
+	server.POST("/register", controllers.Register)
+    server.POST("/login", controllers.Login)
 
-	// Protected routes
-	auth := router.Group("/")
-	auth.Use(middlewares.AuthMiddleware())
-	{
-		PostRoutes(auth)
-		CommentRoutes(auth)
-		LikeRoutes(auth)
-	}
+    auth := server.Group("/")
+    auth.Use(middlewares.AuthMiddleware())
+    {
+        auth.POST("/posts", controllers.CreatePost)
+        auth.GET("/posts/:id", controllers.GetPost)
+        auth.PUT("/posts/:id", controllers.UpdatePost)
+        auth.DELETE("/posts/:id", controllers.DeletePost)
+        auth.GET("/posts", controllers.ListPosts)
 
-	return router
+        auth.POST("/comments", controllers.CreateComment)
+        auth.GET("/comments/:id", controllers.GetComment)
+        auth.PUT("/comments/:id", controllers.UpdateComment)
+        auth.DELETE("/comments/:id", controllers.DeleteComment)
+        auth.GET("/comments", controllers.ListComments)
+
+        auth.POST("/likes", controllers.CreateLike)
+        auth.GET("/likes/:id", controllers.GetLike)
+        auth.DELETE("/likes/:id", controllers.DeleteLike)
+        auth.GET("/likes", controllers.ListLikes)
+    }
+	return server
 }
